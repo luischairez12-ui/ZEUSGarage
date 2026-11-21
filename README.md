@@ -1,12 +1,21 @@
-# ZEUS Garage — Batch 4 (v0.4.0)
+# ZEUS Garage — Batch 5 (v0.5.0)
 
 Native Android app for truck maintenance and vehicle records. The **Ruby Red + white** UI uses the large BoreLab-style tile grid from the approved ZEUS Garage concept. Works without a network connection or paid server.
 
-## Batch 4 — Navigation-only redesign
+## Batch 5 — Navigation cleanup (v0.5.0)
+
+- Removed the five-item bottom navigation and top-left hamburger menu to reclaim screen space.
+- **Right-edge pull-tab works on every page**: tap to open, swipe left to open, or drag it up/down to a comfortable finger position. The saved position is screen-size-independent and persists when ZEUS restarts.
+- **Compact menu search** is a single short line, with a shorter placeholder. Removed the extra instructional text beneath it.
+- The drawer's existing large shortcut cards and fixed Quick Add Record action remain as before.
+- **Unchanged:** truck hero image/card, the rest of the dashboard, features, database, and saved records. No new permission requests or data migrations.
+- Phone testing: open a nested page via the launcher, move the edge tab, relaunch ZEUS, check it stays there. Upgrade in place, do not uninstall.
+
+## Batch 4 — Previous navigation redesign
 
 - BoreLab-style **Garage Menu** slides in from the right instead of the plain sidebar.
 - Large Ruby Red + white grouped shortcuts, shortcut-only search, close button, active truck heading, and fixed **Quick Add Record** button.
-- Opens from the top-left hamburger, bottom **More** tab, or the small Ruby Red pull-tab on the right edge of Home (tap or pull left). Press Back, tap outside, or choose a shortcut to close it.
+- In v0.5.0 the **movable right-edge pull-tab** replaces the older hamburger and bottom More entry points. Press Back, tap outside, or choose a shortcut to close the launcher.
 - **Unchanged:** original header, truck information, F-250 artwork, dashboard tiles, existing feature pages, stored records, and database schema.
 - Upgrade over the installed v0.3.0 app to keep saved records. Do not uninstall.
 
@@ -36,9 +45,9 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 
 ## Build with BuildDeck on your phone
 
-1. Open **BuildDeck → Projects → + Import source project ZIP**.
-2. Choose **ZEUS_Garage_Batches_1_2_Source.zip** (the ZIP containing `settings.gradle.kts`, `build.gradle.kts`, and `app/` directly at its root).
-3. Open the imported project and tap **Build APK**. BuildDeck will use your configured Termux/Gradle/Android SDK 35 installation.
+1. Open **BuildDeck → Projects**, then open the existing **GitHub-connected ZEUSGarage** project.
+2. Tap **Fetch changes from GitHub** or open AI Sync Inbox. Review/approve the incoming changes; no code is applied automatically.
+3. Tap **Build APK** in that project to build from the updated source using your configured Termux/Gradle/Android SDK 35 installation.
 4. Once the build actually succeeds, look in **Downloads**, or **Downloads/BuildDeck/Out** if BuildDeck's copy succeeded. If the APK is not in the Vault, choose **Vault → + Import APK** and associate it with ZEUS Garage.
 5. Install the APK. Android will always show its own installer confirmation.
 
@@ -64,8 +73,10 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 ## Phone acceptance checklist
 
 - [ ] Header, truck hero image/details and home dashboard match the previous version exactly.
-- [ ] Hamburger, bottom More tab and Home's right-edge pull-tab open the larger slide-out Garage Menu.
-- [ ] Search finds a shortcut for 'parts', 'fuel', or 'health'; only page links are searched.
+- [ ] There is no bottom Home/Garage/Service/History/More bar and no top-left hamburger.
+- [ ] The right-edge tab opens the launcher on Home AND every other page.
+- [ ] Drag the tab up and down; it stays on-screen and remembers its position after restarting ZEUS.
+- [ ] Compact search is a single line without the old explanatory hint; it finds pages such as 'parts', 'fuel', or 'health'.
 - [ ] A shortcut opens the existing page; Close, Back and outside-tap dismiss the menu.
 - [ ] Quick Add Record opens the existing add-record dialog; saved records remain intact.
 
@@ -79,7 +90,7 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 - [ ] Add a note with a selected photo; close and reopen the app to verify it persists.
 - [ ] Save a DTC as Observed and change it to Resolved; confirm no fake scanner connection.
 - [ ] Add a second vehicle and verify its records don't appear under ZEUS.
-- [ ] Tap the menu icon and navigate with the slide-out sidebar.
+- [ ] Tap the right-edge pull-tab and navigate with the slide-out Garage Menu.
 - [ ] Open Parts & Stores and verify all eight retailer Shop links; online shops must have no Navigate button.
 - [ ] Tap Navigate for AutoZone/NAPA/O'Reilly and choose a nearby result in Google Maps. No ZEUS location permission required.
 - [ ] Add a symptom, change severity, mark resolved; verify Vehicle Health's open count changes and records persist after restart.
@@ -87,7 +98,7 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 
 ## Source checks performed before delivery
 
-- Validated XML files and executed all eight SQLite `CREATE TABLE` statements in an in-memory SQLite database, including a foreign-key cascade delete.
+- Earlier source checks validated the original XML and SQLite tables. Current release includes database v2 and its non-destructive migration; GitHub Actions verifies Android compilation.
 - Compiled the dependency-free Kotlin domain model with `kotlinc`, and passed smoke tests for maintenance due/overdue math, cash amounts, and full-to-full MPG with an intermediate partial fill-up.
 - Verified the ZIP contents and CRC. **Build status:** GitHub Actions compiles the Android APK; the user separately builds and installs with BuildDeck/Termux on their phone. GitHub builds alone do not establish phone functionality.
 
