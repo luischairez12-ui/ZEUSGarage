@@ -9,6 +9,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -50,10 +57,10 @@ fun ZeusGarageApp() {
     var busy by remember { mutableStateOf(true) }
     var revision by remember { mutableIntStateOf(0) }
     var route by remember { mutableStateOf("Home") }
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    var launcherOpen by remember { mutableStateOf(false) }
     fun navigate(destination: String) {
         route = destination
-        scope.launch { drawerState.close() }
+        launcherOpen = false
     }
     var editing by remember { mutableStateOf<EditRequest?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteRequest?>(null) }
@@ -108,29 +115,28 @@ fun ZeusGarageApp() {
     fun askDelete(table: String, id: Long, label: String) {
         pendingDelete = DeleteRequest(table, id, label)
     }
-    BackHandler(enabled = editing != null || pendingDelete != null || quickAdd || route != "Home") {
+    BackHandler(enabled = launcherOpen || editing != null || pendingDelete != null || quickAdd || route != "Home") {
         when {
             editing != null -> { editing = null; pendingPhotoUri = null }
             pendingDelete != null -> pendingDelete = null
             quickAdd -> quickAdd = false
+            launcherOpen -> launcherOpen = false
             else -> route = "Home"
         }
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = { ZeusNavigationDrawer(
-            current = route,
-            activeTruck = snapshot.active?.nickname ?: "My garage",
-            onNavigate = ::navigate
-        ) }
-    ) {
+    // Only the navigation surface changes in Batch 4; the truck hero and dashboard stay untouched.
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         containerColor = ZeusBackground,
         topBar = { Box(Modifier.statusBarsPadding()) { ZeusHeader(onMenu = {
-            scope.launch { drawerState.open() }
+            launcherOpen = true
         }) } },
-        bottomBar = { Column(Modifier.navigationBarsPadding()) { ZeusBottomNav(route) { route = it } } },
+        bottomBar = { Column(Modifier.navigationBarsPadding()) {
+            ZeusBottomNav(route) { destination ->
+                if (destination == "More") launcherOpen = true else navigate(destination)
+            }
+        } },
         floatingActionButton = {
             if (route != "Garage") FloatingActionButton(
                 onClick = { quickAdd = true }, containerColor = Ruby, contentColor = Color.White
@@ -182,6 +188,41 @@ fun ZeusGarageApp() {
             else if (busy) LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter), color = Ruby)
         }
+    }
+
+    // Small edge handle only on Home, so other functional pages never get obscured.
+    if (!launcherOpen && route == "Home") {
+        Box(Modifier.align(Alignment.CenterEnd).offset(y = 75.dp)) {
+            ZeusLauncherPullTab { launcherOpen = true }
+        }
+    }
+
+    // BoreLab-style right-side launcher; dismiss by tapping outside, Close, Back, or choosing a page.
+    AnimatedVisibility(
+        visible = launcherOpen,
+        modifier = Modifier.matchParentSize(),
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(Modifier.fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.26f))
+            .clickable { launcherOpen = false })
+    }
+    AnimatedVisibility(
+        visible = launcherOpen,
+        modifier = Modifier.align(Alignment.CenterEnd)
+            .fillMaxWidth(0.94f).fillMaxHeight()
+            .statusBarsPadding().navigationBarsPadding(),
+        enter = slideInHorizontally(initialOffsetX = { it }),
+        exit = slideOutHorizontally(targetOffsetX = { it })
+    ) {
+        ZeusLauncherPanel(
+            current = route,
+            activeTruck = snapshot.active?.nickname ?: "My garage",
+            onNavigate = ::navigate,
+            onClose = { launcherOpen = false },
+            onQuickAdd = { launcherOpen = false; quickAdd = true }
+        )
     }
     }
 
