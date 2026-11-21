@@ -3,6 +3,7 @@ package com.zeusgarage.mobile
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -210,6 +212,39 @@ private fun ZeusLauncherCard(
             }
             Icon(Icons.Outlined.ChevronRight, contentDescription = null,
                 tint = RubyDark, modifier = Modifier.size(23.dp))
+        }
+    }
+}
+
+/** Narrow Ruby Red edge pull-tab, like BoreLab. Tap it or pull left to reveal the launcher. */
+@Composable
+fun ZeusLauncherPullTab(onOpen: () -> Unit) {
+    Box(
+        modifier = Modifier.width(44.dp).height(83.dp)
+            .clickable(onClick = onOpen)
+            .pointerInput(onOpen) {
+                var travel = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { travel = 0f },
+                    onHorizontalDrag = { change, amount ->
+                        travel += amount
+                        change.consume()
+                    },
+                    onDragEnd = { if (travel < -22f) onOpen() }
+                )
+            },
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Surface(
+            modifier = Modifier.width(25.dp).fillMaxHeight(),
+            shape = RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp),
+            color = Ruby,
+            shadowElevation = 7.dp
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Outlined.ChevronLeft, contentDescription = "Open Garage Menu",
+                    tint = Color.White, modifier = Modifier.size(22.dp))
+            }
         }
     }
 }
