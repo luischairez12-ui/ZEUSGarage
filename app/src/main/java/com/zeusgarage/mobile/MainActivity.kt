@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +59,13 @@ fun ZeusGarageApp() {
     var revision by remember { mutableIntStateOf(0) }
     var route by remember { mutableStateOf("Home") }
     var launcherOpen by remember { mutableStateOf(false) }
+    // Position stored as a fraction so it stays usable on different screen sizes/orientations.
+    val uiPreferences = remember(context) {
+        context.getSharedPreferences("zeus_launcher_ui", android.content.Context.MODE_PRIVATE)
+    }
+    var launcherTabFraction by remember {
+        mutableFloatStateOf(uiPreferences.getFloat("edge_tab_y", 0.55f).coerceIn(0f, 1f))
+    }
     fun navigate(destination: String) {
         route = destination
         launcherOpen = false
@@ -125,18 +133,12 @@ fun ZeusGarageApp() {
         }
     }
 
-    // Only the navigation surface changes in Batch 4; the truck hero and dashboard stay untouched.
+    // Batch 5 changes navigation chrome only; truck card and dashboard remain untouched.
     Box(Modifier.fillMaxSize()) {
     Scaffold(
         containerColor = ZeusBackground,
-        topBar = { Box(Modifier.statusBarsPadding()) { ZeusHeader(onMenu = {
-            launcherOpen = true
-        }) } },
-        bottomBar = { Column(Modifier.navigationBarsPadding()) {
-            ZeusBottomNav(route) { destination ->
-                if (destination == "More") launcherOpen = true else navigate(destination)
-            }
-        } },
+        topBar = { Box(Modifier.statusBarsPadding()) { ZeusHeader() } },
+        // No bottom nav: the launcher is available from the draggable edge tab on every page.
         floatingActionButton = {
             if (route != "Garage") FloatingActionButton(
                 onClick = { quickAdd = true }, containerColor = Ruby, contentColor = Color.White
@@ -190,10 +192,30 @@ fun ZeusGarageApp() {
         }
     }
 
-    // Small edge handle only on Home, so other functional pages never get obscured.
-    if (!launcherOpen && route == "Home") {
-        Box(Modifier.align(Alignment.CenterEnd).offset(y = 75.dp)) {
-            ZeusLauncherPullTab { launcherOpen = true }
+    // Always reachable, including on nested pages now that bottom and top menus are gone.
+    if (!launcherOpen) {
+        Box(
+            Modifier.matchParentSize().statusBarsPadding().navigationBarsPadding()
+        ) {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val tabHeight = 80.dp
+                val freeHeight = (maxHeight - tabHeight - 32.dp).coerceAtLeast(0.dp)
+                val travelPx = with(LocalDensity.current) { freeHeight.toPx() }.coerceAtLeast(1f)
+                Box(
+                    Modifier.align(Alignment.TopEnd)
+                        .offset(y = 16.dp + freeHeight * launcherTabFraction)
+                ) {
+                    ZeusLauncherPullTab(
+                        onOpen = { launcherOpen = true },
+                        onVerticalDrag = { dy ->
+                            launcherTabFraction = (launcherTabFraction + dy / travelPx).coerceIn(0f, 1f)
+                        },
+                        onDragFinished = {
+                            uiPreferences.edit().putFloat("edge_tab_y", launcherTabFraction).apply()
+                        }
+                    )
+                }
+            }
         }
     }
 
