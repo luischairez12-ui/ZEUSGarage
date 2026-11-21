@@ -10,7 +10,7 @@ import java.io.File
 import java.util.UUID
 
 /** All data stays in this app's private SQLite database and internal photo folder. */
-class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_garage.db", null, 1) {
+class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_garage.db", null, 2) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -54,6 +54,13 @@ class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_
             date TEXT NOT NULL, code TEXT NOT NULL, status TEXT NOT NULL,
             symptoms TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT ''
         )""")
+        db.execSQL("""CREATE TABLE symptom (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            vehicle_id INTEGER NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
+            date TEXT NOT NULL, title TEXT NOT NULL, severity TEXT NOT NULL,
+            occurrence TEXT NOT NULL, notes TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'Open'
+        )""")
         // Only known descriptive truck facts are seeded. No fabricated odometer, fuel level or codes.
         val truck = ContentValues().apply {
             put("nickname", "ZEUS"); put("year", "2019"); put("make", "Ford")
@@ -74,8 +81,14 @@ class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_
         }
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Future migrations must preserve all user-created records.
-        if (oldVersion != newVersion) error("Database migration required")
+        // Non-destructive migration: preserve every v1 vehicle, service, and repair record.
+        if (oldVersion < 2) db.execSQL("""CREATE TABLE IF NOT EXISTS symptom (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            vehicle_id INTEGER NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
+            date TEXT NOT NULL, title TEXT NOT NULL, severity TEXT NOT NULL,
+            occurrence TEXT NOT NULL, notes TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'Open'
+        )""")
     }
 
     private fun Cursor.str(name: String) = getString(getColumnIndexOrThrow(name))
@@ -141,6 +154,10 @@ class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_
             codes = rows("SELECT * FROM dtc WHERE vehicle_id=? ORDER BY date DESC,id DESC", args) {
                 DtcEntry(num("id"), num("vehicle_id"), str("date"), str("code"), str("status"),
                     str("symptoms"), str("notes"))
+            },
+            symptoms = rows("SELECT * FROM symptom WHERE vehicle_id=? ORDER BY date DESC,id DESC", args) {
+                SymptomEntry(num("id"), num("vehicle_id"), str("date"), str("title"),
+                    str("severity"), str("occurrence"), str("notes"), str("status"))
             }
         )
     }
@@ -267,6 +284,20 @@ class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_
             put("status", status); put("symptoms", symptoms.trim()); put("notes", notes.trim())
         })
     }
+    fun saveSymptom(vehicleId: Long, id: Long?, date: String, title: String,
+                    severity: String, occurrence: String, notes: String, status: String) {
+        require(title.isNotBlank() && title.length <= 140)
+        require(runCatching { java.time.LocalDate.parse(date) }.isSuccess)
+        require(severity in listOf("Mild", "Moderate", "Severe"))
+        require(occurrence in listOf("Intermittent", "Constant"))
+        require(status in listOf("Open", "Resolved"))
+        save("symptom", vehicleId, id, ContentValues().apply {
+            put("vehicle_id", vehicleId); put("date", date); put("title", title.trim())
+            put("severity", severity); put("occurrence", occurrence)
+            put("notes", notes.trim()); put("status", status)
+        })
+    }
+
     private fun save(table: String, vehicleId: Long, id: Long?, values: ContentValues) {
         saveWithDb(writableDatabase, table, vehicleId, id, values)
     }
@@ -277,7 +308,7 @@ class ZeusStore(private val context: Context) : SQLiteOpenHelper(context, "zeus_
         }
     }
     fun deleteRecord(table: String, id: Long, vehicleId: Long) {
-        require(table in setOf("service_task", "service_event", "fuel", "repair", "upgrade", "garage_note", "dtc"))
+        require(table in setOf("service_task", "service_event", "fuel", "repair", "upgrade", "garage_note", "dtc", "symptom"))
         // Only delete precisely the requested record for the current vehicle.
         if (table == "garage_note") {
             val photo = snapshot().notes.firstOrNull { it.id == id && it.vehicleId == vehicleId }?.photoPath
