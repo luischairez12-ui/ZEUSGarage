@@ -6,7 +6,7 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 
 - BoreLab-style **Garage Menu** slides in from the right instead of the plain sidebar.
 - Large Ruby Red + white grouped shortcuts, shortcut-only search, close button, active truck heading, and fixed **Quick Add Record** button.
-- Opens from the top-left hamburger or the bottom **More** tab. Press Back, tap outside, or choose a shortcut to close it.
+- Opens from the top-left hamburger, bottom **More** tab, or the small Ruby Red pull-tab on the right edge of Home (tap or pull left). Press Back, tap outside, or choose a shortcut to close it.
 - **Unchanged:** original header, truck information, F-250 artwork, dashboard tiles, existing feature pages, stored records, and database schema.
 - Upgrade over the installed v0.3.0 app to keep saved records. Do not uninstall.
 
@@ -64,7 +64,7 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 ## Phone acceptance checklist
 
 - [ ] Header, truck hero image/details and home dashboard match the previous version exactly.
-- [ ] Hamburger and bottom More tab open the larger slide-out Garage Menu.
+- [ ] Hamburger, bottom More tab and Home's right-edge pull-tab open the larger slide-out Garage Menu.
 - [ ] Search finds a shortcut for 'parts', 'fuel', or 'health'; only page links are searched.
 - [ ] A shortcut opens the existing page; Close, Back and outside-tap dismiss the menu.
 - [ ] Quick Add Record opens the existing add-record dialog; saved records remain intact.
