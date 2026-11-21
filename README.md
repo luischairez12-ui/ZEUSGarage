@@ -1,6 +1,14 @@
-# ZEUS Garage — Batch 3 (v0.3.0)
+# ZEUS Garage — Batch 4 (v0.4.0)
 
 Native Android app for truck maintenance and vehicle records. The **Ruby Red + white** UI uses the large BoreLab-style tile grid from the approved ZEUS Garage concept. Works without a network connection or paid server.
+
+## Batch 4 — Navigation-only redesign
+
+- BoreLab-style **Garage Menu** slides in from the right instead of the plain sidebar.
+- Large Ruby Red + white grouped shortcuts, shortcut-only search, close button, active truck heading, and fixed **Quick Add Record** button.
+- Opens from the top-left hamburger or the bottom **More** tab. Press Back, tap outside, or choose a shortcut to close it.
+- **Unchanged:** original header, truck information, F-250 artwork, dashboard tiles, existing feature pages, stored records, and database schema.
+- Upgrade over the installed v0.3.0 app to keep saved records. Do not uninstall.
 
 ## What's working in ZEUS Garage
 
@@ -54,6 +62,13 @@ Native Android app for truck maintenance and vehicle records. The **Ruby Red + w
 - Safety: Diagnostics are manual and informational. Never represent mock vehicle telemetry or remote vehicle controls as real.
 
 ## Phone acceptance checklist
+
+- [ ] Header, truck hero image/details and home dashboard match the previous version exactly.
+- [ ] Hamburger and bottom More tab open the larger slide-out Garage Menu.
+- [ ] Search finds a shortcut for 'parts', 'fuel', or 'health'; only page links are searched.
+- [ ] A shortcut opens the existing page; Close, Back and outside-tap dismiss the menu.
+- [ ] Quick Add Record opens the existing add-record dialog; saved records remain intact.
+
 
 - [ ] App opens with ZEUS's prefilled truck information, **without a fake odometer or fuel status**.
 - [ ] Edit current mileage and see it on the Home card.
