@@ -58,12 +58,19 @@ data class DtcEntry(
     val status: String, val symptoms: String, val notes: String
 )
 
+data class SymptomEntry(
+    val id: Long, val vehicleId: Long, val date: String,
+    val title: String, val severity: String, val occurrence: String,
+    val notes: String, val status: String
+)
+
 data class GarageSnapshot(
     val vehicles: List<Vehicle> = emptyList(), val activeId: Long = 0,
     val tasks: List<ServiceTask> = emptyList(), val services: List<ServiceEvent> = emptyList(),
     val fuel: List<FuelEntry> = emptyList(), val repairs: List<RepairEntry> = emptyList(),
     val upgrades: List<UpgradeEntry> = emptyList(), val notes: List<NoteEntry> = emptyList(),
-    val codes: List<DtcEntry> = emptyList()
+    val codes: List<DtcEntry> = emptyList(),
+    val symptoms: List<SymptomEntry> = emptyList()
 ) {
     val active: Vehicle? get() = vehicles.firstOrNull { it.id == activeId } ?: vehicles.firstOrNull()
     val actualExpenses: Long get() = services.sumOf { it.costCents } + fuel.sumOf { it.totalCents } +
