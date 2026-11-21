@@ -190,6 +190,13 @@ fun ZeusGarageApp() {
         }
     }
 
+    // Small edge handle only on Home, so other functional pages never get obscured.
+    if (!launcherOpen && route == "Home") {
+        Box(Modifier.align(Alignment.CenterEnd).offset(y = 75.dp)) {
+            ZeusLauncherPullTab { launcherOpen = true }
+        }
+    }
+
     // BoreLab-style right-side launcher; dismiss by tapping outside, Close, Back, or choosing a page.
     AnimatedVisibility(
         visible = launcherOpen,
