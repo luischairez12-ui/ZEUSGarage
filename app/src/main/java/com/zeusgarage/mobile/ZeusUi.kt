@@ -79,17 +79,12 @@ fun SectionTitle(title: String, description: String? = null) {
 }
 
 @Composable
-fun ZeusHeader(onMenu: () -> Unit) {
+fun ZeusHeader() {
     Row(
         Modifier.fillMaxWidth().background(Color.White)
             .padding(start = 20.dp, end = 20.dp, top = 15.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onMenu, modifier = Modifier.size(42.dp)) {
-            Icon(Icons.Outlined.Menu, contentDescription = "Open ZEUS navigation", tint = Ruby,
-                modifier = Modifier.size(28.dp))
-        }
-        Spacer(Modifier.width(6.dp))
         Text("Z", fontSize = 34.sp, fontWeight = FontWeight.Black,
             fontStyle = FontStyle.Italic, color = Ruby, lineHeight = 36.sp)
         Spacer(Modifier.width(6.dp))

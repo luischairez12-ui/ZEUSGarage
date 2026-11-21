@@ -3,7 +3,7 @@ package com.zeusgarage.mobile
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -106,26 +106,26 @@ fun ZeusLauncherPanel(
 
             HorizontalDivider(color = ZeusLine)
 
-            Column(
-                Modifier.fillMaxWidth().padding(start = 17.dp, end = 17.dp, top = 14.dp, bottom = 5.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp)
+            // Compact single-line search: no instructional paragraph, no wrapped placeholder.
+            Box(
+                Modifier.fillMaxWidth().padding(start = 17.dp, end = 17.dp, top = 10.dp, bottom = 0.dp)
             ) {
-                SmallCaps("SEARCH SHORTCUTS")
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it.take(80) },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Find a page, e.g. parts or fuel") },
-                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = Ruby) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    placeholder = { Text("Search menu...", maxLines = 1) },
+                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null,
+                        tint = Ruby, modifier = Modifier.size(20.dp)) },
                     trailingIcon = {
                         if (query.isNotEmpty()) IconButton(onClick = { query = "" }) {
                             Icon(Icons.Outlined.Clear, contentDescription = "Clear search")
                         }
                     },
                     singleLine = true,
-                    shape = RoundedCornerShape(18.dp)
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    shape = RoundedCornerShape(17.dp)
                 )
-                Muted("Finds ZEUS pages. Your saved records stay inside each section.")
             }
 
             LazyColumn(
@@ -216,21 +216,41 @@ private fun ZeusLauncherCard(
     }
 }
 
-/** Narrow Ruby Red edge pull-tab, like BoreLab. Tap it or pull left to reveal the launcher. */
+/**
+ * A movable Ruby Red edge handle. Tapping opens the launcher, dragging vertically
+ * repositions it, and a leftward swipe opens it. Parent saves the final position.
+ */
 @Composable
-fun ZeusLauncherPullTab(onOpen: () -> Unit) {
+fun ZeusLauncherPullTab(
+    onOpen: () -> Unit,
+    onVerticalDrag: (Float) -> Unit,
+    onDragFinished: () -> Unit
+) {
+    val latestOpen by rememberUpdatedState(onOpen)
+    val latestVerticalDrag by rememberUpdatedState(onVerticalDrag)
+    val latestDragFinished by rememberUpdatedState(onDragFinished)
     Box(
-        modifier = Modifier.width(44.dp).height(83.dp)
+        modifier = Modifier.width(44.dp).height(80.dp)
             .clickable(onClick = onOpen)
-            .pointerInput(onOpen) {
-                var travel = 0f
-                detectHorizontalDragGestures(
-                    onDragStart = { travel = 0f },
-                    onHorizontalDrag = { change, amount ->
-                        travel += amount
+            .pointerInput(Unit) {
+                var horizontal = 0f
+                var vertical = 0f
+                detectDragGestures(
+                    onDragStart = { horizontal = 0f; vertical = 0f },
+                    onDrag = { change, dragAmount ->
+                        horizontal += dragAmount.x
+                        vertical += dragAmount.y
+                        if (dragAmount.y != 0f) latestVerticalDrag(dragAmount.y)
                         change.consume()
                     },
-                    onDragEnd = { if (travel < -22f) onOpen() }
+                    onDragEnd = {
+                        if (horizontal < -34.dp.toPx() &&
+                            kotlin.math.abs(horizontal) > kotlin.math.abs(vertical) * 1.25f) {
+                            latestOpen()
+                        }
+                        latestDragFinished()
+                    },
+                    onDragCancel = { latestDragFinished() }
                 )
             },
         contentAlignment = Alignment.CenterEnd
