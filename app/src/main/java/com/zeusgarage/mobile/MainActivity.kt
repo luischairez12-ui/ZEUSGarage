@@ -50,6 +50,11 @@ fun ZeusGarageApp() {
     var busy by remember { mutableStateOf(true) }
     var revision by remember { mutableIntStateOf(0) }
     var route by remember { mutableStateOf("Home") }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    fun navigate(destination: String) {
+        route = destination
+        scope.launch { drawerState.close() }
+    }
     var editing by remember { mutableStateOf<EditRequest?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteRequest?>(null) }
     var selectedDefinition by remember { mutableStateOf<DtcDefinition?>(null) }
@@ -112,9 +117,19 @@ fun ZeusGarageApp() {
         }
     }
 
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = { ZeusNavigationDrawer(
+            current = route,
+            activeTruck = snapshot.active?.nickname ?: "My garage",
+            onNavigate = ::navigate
+        ) }
+    ) {
     Scaffold(
         containerColor = ZeusBackground,
-        topBar = { Box(Modifier.statusBarsPadding()) { ZeusHeader() } },
+        topBar = { Box(Modifier.statusBarsPadding()) { ZeusHeader(onMenu = {
+            scope.launch { drawerState.open() }
+        }) } },
         bottomBar = { Column(Modifier.navigationBarsPadding()) { ZeusBottomNav(route) { route = it } } },
         floatingActionButton = {
             if (route != "Garage") FloatingActionButton(
@@ -132,6 +147,12 @@ fun ZeusGarageApp() {
                     onSelect = { v -> modify({ selectVehicle(v.id) }) { route = "Home" } },
                     onEdit = { v -> edit("vehicle", v?.id) },
                     onDelete = { v -> askDelete("vehicle", v.id, v.nickname) })
+                "Health" -> HealthCenterPage(snapshot, onGo = ::navigate)
+                "Issues" -> ActiveIssuesPage(snapshot, onGo = ::navigate)
+                "Symptoms" -> SymptomsPage(snapshot,
+                    onAdd = { edit("symptom") }, onEdit = { edit("symptom", it.id) },
+                    onDelete = { askDelete("symptom", it.id, it.title) })
+                "Parts" -> PartsStoresPage()
                 "Maintenance" -> MaintenancePage(snapshot,
                     onAddTask = { edit("task") }, onTask = { edit("task", it.id) },
                     onLog = { edit("service", null, it?.id) }, onEditLog = { edit("service", it.id) },
@@ -162,6 +183,7 @@ fun ZeusGarageApp() {
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter), color = Ruby)
         }
     }
+    }
 
     if (quickAdd) {
         AlertDialog(
@@ -171,7 +193,8 @@ fun ZeusGarageApp() {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     listOf(
                         "fuel" to "Fuel-up", "service" to "Completed service",
-                        "repair" to "Repair", "code" to "DTC / symptom",
+                        "repair" to "Repair", "code" to "DTC",
+                        "symptom" to "Symptom",
                         "upgrade" to "Upgrade", "note" to "Photo / note",
                         "task" to "Maintenance schedule"
                     ).forEach { (kind, name) ->
@@ -216,6 +239,8 @@ fun ZeusGarageApp() {
                             }
                             "code" -> saveCode(vid, request.id, v("date"), v("code").uppercase(),
                                 v("status"), v("symptoms"), v("notes"))
+                            "symptom" -> saveSymptom(vid, request.id, v("date"), v("title"),
+                                v("severity"), v("occurrence"), v("notes"), v("status"))
                             else -> error("Unknown editor type")
                         }
                     }, onSuccess = {
