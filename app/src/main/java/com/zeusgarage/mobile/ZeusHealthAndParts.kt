@@ -32,7 +32,9 @@ val partsStores = listOf(
     PartsStore("AutoZone", "Parts and maintenance supplies", "https://www.autozone.com/", "AutoZone"),
     PartsStore("Advance Auto Parts", "Parts, batteries and accessories", "https://shop.advanceautoparts.com/", "Advance Auto Parts"),
     PartsStore("Walmart Auto", "Oil, filters, batteries and accessories", "https://www.walmart.com/cp/auto-tires/91083", "Walmart Auto Care Center"),
-    PartsStore("RockAuto", "Online parts catalog", "https://www.rockauto.com/", null)
+    PartsStore("RockAuto", "Online parts catalog", "https://www.rockauto.com/", null),
+    PartsStore("eBay Motors", "New, used and hard-to-find truck parts", "https://www.ebay.com/b/Auto-Parts-and-Vehicles/6000/bn_1865334", null),
+    PartsStore("Amazon Automotive", "Auto parts, tools, and truck accessories", "https://www.amazon.com/s?k=automotive+parts", null)
 )
 
 private fun launchView(context: Context, intent: Intent): Boolean = try {
