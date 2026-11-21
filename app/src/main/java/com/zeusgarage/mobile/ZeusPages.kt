@@ -354,12 +354,18 @@ fun HistoryPage(data: GarageSnapshot, onGo: (String) -> Unit, onExport: () -> Un
 fun MorePage(onGo: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { SectionTitle("More", "Tools and records for your garage.") }
+        item { DashTile("Vehicle Health", "Issues, symptoms and reminders", Icons.Outlined.FavoriteBorder,
+            Modifier.fillMaxWidth()) { onGo("Health") } }
+        item { DashTile("Parts & Stores", "Shop and navigate to stores", Icons.Outlined.Storefront,
+            Modifier.fillMaxWidth()) { onGo("Parts") } }
+        item { DashTile("Symptom Tracker", "Record unusual truck behavior", Icons.Outlined.EditNote,
+            Modifier.fillMaxWidth()) { onGo("Symptoms") } }
         item { DashTile("Diagnostics", "Offline DTC library", Icons.Outlined.MonitorHeart, Modifier.fillMaxWidth()) { onGo("Diagnostics") } }
         item { DashTile("Fuel & expenses", "Fill-ups and costs", Icons.Outlined.LocalGasStation, Modifier.fillMaxWidth()) { onGo("Fuel") } }
         item { DashTile("Repairs", "Parts and invoices", Icons.Outlined.Build, Modifier.fillMaxWidth()) { onGo("Repairs") } }
         item { DashTile("Upgrades", "Wishlist and installed", Icons.Outlined.AutoAwesome, Modifier.fillMaxWidth()) { onGo("Upgrades") } }
         item { DashTile("Photos / Notes", "Truck memories", Icons.Outlined.PhotoLibrary, Modifier.fillMaxWidth()) { onGo("Notes") } }
-        item { Muted("ZEUS Garage v0.1.0 • Offline-only. No cloud login, vehicle remote controls or live OBD reader.") }
+        item { Muted("ZEUS Garage v0.3.0 • Offline records. External retailer and Maps links require internet. No remote controls or live OBD.") }
         item { Spacer(Modifier.height(75.dp)) }
     }
 }
