@@ -47,6 +47,7 @@ fun EntryEditor(
     val upgrade = data.upgrades.firstOrNull { it.id == request.id }
     val note = data.notes.firstOrNull { it.id == request.id }
     val code = data.codes.firstOrNull { it.id == request.id }
+    val symptom = data.symptoms.firstOrNull { it.id == request.id }
 
     val initial = remember(request) {
         mutableStateMapOf<String, String>().apply {
@@ -89,6 +90,13 @@ fun EntryEditor(
                 "note" -> {
                     put("date", note?.date ?: today()); put("title", note?.title.orEmpty()); put("body", note?.body.orEmpty())
                 }
+                "symptom" -> {
+                    put("date", symptom?.date ?: today()); put("title", symptom?.title.orEmpty())
+                    put("severity", symptom?.severity ?: "Moderate")
+                    put("occurrence", symptom?.occurrence ?: "Intermittent")
+                    put("status", symptom?.status ?: "Open")
+                    put("notes", symptom?.notes.orEmpty())
+                }
                 "code" -> {
                     put("date", code?.date ?: today()); put("code", code?.code.orEmpty())
                     put("status", code?.status ?: "Observed")
@@ -99,7 +107,7 @@ fun EntryEditor(
         }
     }
     fun value(key: String) = initial[key].orEmpty()
-    val validDate = listOf("service", "fuel", "repair", "note", "code").let { request.kind !in it ||
+    val validDate = listOf("service", "fuel", "repair", "note", "code", "symptom").let { request.kind !in it ||
         runCatching { LocalDate.parse(value("date")) }.isSuccess }
     val validCost = request.kind !in listOf("service", "fuel", "repair", "upgrade") ||
         value("cost").isBlank() || moneyInputToCents(value("cost")) != null
@@ -117,6 +125,10 @@ fun EntryEditor(
         "repair" -> value("title").isNotBlank()
         "upgrade" -> value("name").isNotBlank()
         "note" -> value("title").isNotBlank()
+        "symptom" -> value("title").isNotBlank() &&
+            value("severity") in listOf("Mild", "Moderate", "Severe") &&
+            value("occurrence") in listOf("Intermittent", "Constant") &&
+            value("status") in listOf("Open", "Resolved")
         "code" -> value("code").matches(Regex("[A-Z][0-9A-Z]{4,6}"))
         else -> false
     }
@@ -128,6 +140,7 @@ fun EntryEditor(
         "repair" -> "Repair"
         "upgrade" -> "Upgrade"
         "note" -> "Garage note / photo"
+        "symptom" -> "Symptom"
         else -> "Trouble code"
     }
     @Composable fun field(key: String, label: String, numeric: Boolean = false,
@@ -231,6 +244,33 @@ fun EntryEditor(
                         Muted(if (photoSelected) "Selected photo will be copied into private storage when saved."
                             else if (note?.photoPath != null) "Existing photo will be kept unless replaced."
                             else "Images are stored locally, not uploaded.")
+                    }
+                    "symptom" -> {
+                        field("title", "What is happening?", required = true)
+                        field("date", "Date (YYYY-MM-DD)", required = true)
+                        Text("Severity", style = MaterialTheme.typography.labelLarge)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("Mild", "Moderate", "Severe").forEach { option ->
+                                FilterChip(value("severity") == option,
+                                    onClick = { initial["severity"] = option }, label = { Text(option) })
+                            }
+                        }
+                        Text("How often?", style = MaterialTheme.typography.labelLarge)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("Intermittent", "Constant").forEach { option ->
+                                FilterChip(value("occurrence") == option,
+                                    onClick = { initial["occurrence"] = option }, label = { Text(option) })
+                            }
+                        }
+                        Text("Status", style = MaterialTheme.typography.labelLarge)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("Open", "Resolved").forEach { option ->
+                                FilterChip(value("status") == option,
+                                    onClick = { initial["status"] = option }, label = { Text(option) })
+                            }
+                        }
+                        field("notes", "Driving conditions, sounds and observations", lines = 4)
+                        Muted("This is a manual symptom diary, not an automatic diagnosis.")
                     }
                     "code" -> {
                         FormInput(value("code"), { initial["code"] = it.uppercase().take(7) },

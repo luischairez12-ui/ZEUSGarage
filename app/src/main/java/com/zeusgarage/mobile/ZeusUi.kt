@@ -79,15 +79,20 @@ fun SectionTitle(title: String, description: String? = null) {
 }
 
 @Composable
-fun ZeusHeader() {
+fun ZeusHeader(onMenu: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().background(Color.White)
             .padding(start = 20.dp, end = 20.dp, top = 15.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Z", fontSize = 43.sp, fontWeight = FontWeight.Black,
-            fontStyle = FontStyle.Italic, color = Ruby, lineHeight = 43.sp)
-        Spacer(Modifier.width(10.dp))
+        IconButton(onClick = onMenu, modifier = Modifier.size(42.dp)) {
+            Icon(Icons.Outlined.Menu, contentDescription = "Open ZEUS navigation", tint = Ruby,
+                modifier = Modifier.size(28.dp))
+        }
+        Spacer(Modifier.width(6.dp))
+        Text("Z", fontSize = 34.sp, fontWeight = FontWeight.Black,
+            fontStyle = FontStyle.Italic, color = Ruby, lineHeight = 36.sp)
+        Spacer(Modifier.width(6.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text("ZEUS", fontWeight = FontWeight.ExtraBold, color = ZeusInk,
@@ -299,6 +304,14 @@ fun HomePage(data: GarageSnapshot, onGo: (String) -> Unit,
                     Modifier.weight(1f)) { onGo("Upgrades") }
                 DashTile("Photos / Notes", "Truck records", Icons.Outlined.PhotoLibrary,
                     Modifier.weight(1f)) { onGo("Notes") }
+            }
+        }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                DashTile("Vehicle Health", "Issues and symptoms", Icons.Outlined.FavoriteBorder,
+                    Modifier.weight(1f)) { onGo("Health") }
+                DashTile("Parts & Stores", "Shop and navigate", Icons.Outlined.Storefront,
+                    Modifier.weight(1f)) { onGo("Parts") }
             }
         }
         item {
