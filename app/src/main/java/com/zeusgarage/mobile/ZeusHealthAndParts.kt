@@ -49,7 +49,7 @@ private fun launchView(context: Context, intent: Intent): Boolean = try {
 /** An HTTPS ACTION_VIEW lets Android resolve a supported installed retailer app, otherwise a browser. */
 fun shopAt(context: Context, store: PartsStore) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(store.url)).addCategory(Intent.CATEGORY_BROWSABLE)
-    if (!launchView(context, intent)) Toast.makeText(context, "No browser available to open ", Toast.LENGTH_LONG).show()
+    if (!launchView(context, intent)) Toast.makeText(context, "No browser available to open " + store.name, Toast.LENGTH_LONG).show()
 }
 
 /**
